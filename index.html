@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="icon" href="/favicon.ico" />
+	<title>PetShop Admin</title>
+	<script>
+		// initialize theme: use saved theme or system preference
+		try {
+			const saved = localStorage.getItem('theme')
+			const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+			const isDark = saved ? saved === 'dark' : systemDark
+			if (isDark) document.documentElement.classList.add('dark')
+		} catch (e) {}
+	</script>
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-900">
+	<div id="app"></div>
+	<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
+
