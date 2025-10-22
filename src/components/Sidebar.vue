@@ -8,12 +8,12 @@
         >
         </div>
         <aside
-            class="bg-gray-900 text-white w-64 min-h-screen p-4 flex flex-col fixed inset-y-0 left-0 transform transition-transform duration-300 z-30 -translate-x-full md:translate-x-0"
+            class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white w-64 min-h-screen p-4 flex flex-col fixed inset-y-0 left-0 transform transition-transform duration-300 z-30 -translate-x-full md:translate-x-0 border-r border-gray-200 dark:border-gray-700"
             :class="{ 'translate-x-0': props.isOpen }"
         >
             <div class="flex items-center gap-2 mb-8">
-                <div class="w-10 h-10 bg-gray-700 rounded-full grid place-items-center">
-                    <span class="text-lg font-semibold">P</span>
+                <div class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full grid place-items-center">
+                    <span class="text-lg font-semibold text-gray-800 dark:text-white">P</span>
                 </div>
                 <h1 class="font-semibold text-lg">PETTRY ADMIN</h1>
             </div>
@@ -24,7 +24,7 @@
                     :key="item.label"
                     @click.prevent="goTo(item.path)"
                     href="#"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800 transition cursor-pointer"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer text-gray-700 dark:text-gray-300"
                 >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>

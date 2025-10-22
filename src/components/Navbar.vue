@@ -2,18 +2,18 @@
     <header
         class="flex items-center justify-between bg-white dark:bg-gray-800 p-4 shadow-md"
     >
-        <button @click="$emit('toggle-sidebar')" class="md:hidden p-2 rounded bg-gray-800 text-white"> ☰ </button>
+        <button @click="$emit('toggle-sidebar')" class="md:hidden p-2 rounded bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"> ☰ </button>
         <div class="flex items-center w-full max-w-md">
             <input
                 type="text"
-                placeholder="Search products, orders..."
+                placeholder="🔎 Search products, orders..."
                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none"
             />
         </div>
 
         <div class="flex items-center gap-4">
-            <button class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">🔔</button>
-            <button @click="goSettings" class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">⚙️</button>
+            <button class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">🔔</button>
+            <button @click="goSettings" class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">⚙️</button>
             <ThemeToggle />
             <button
                 @click="logout"
