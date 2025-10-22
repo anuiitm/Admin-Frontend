@@ -22,7 +22,7 @@
 							<circle cx="14.5" cy="5.5" r="2.5" fill="currentColor"/>
 						</svg>
 					</div>
-					<h1 class="text-3xl font-semibold tracking-tight">PetShop Admin</h1>
+					<h1 class="text-3xl font-semibold tracking-tight">PETTRY ADMIN</h1>
 				</div>
 				<p class="text-white/80 leading-relaxed">Manage products, orders, and customers with a sleek, modern interface. Sign in to continue to your dashboard.</p>
 			</div>
@@ -33,7 +33,7 @@
 			<div class="w-full max-w-md">
 				<div class="mb-8 text-center">
 					<h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Welcome back</h2>
-					<p class="mt-1 text-gray-500 dark:text-gray-400">Sign in to your admin account</p>
+					<p class="mt-1 text-gray-500 dark:text-gray-400">Sign in to your pettry admin account</p>
 				</div>
 
 				<form @submit.prevent="onSubmit" class="bg-white dark:bg-gray-800 rounded-2xl shadow-soft p-6 border border-gray-100 dark:border-gray-700">

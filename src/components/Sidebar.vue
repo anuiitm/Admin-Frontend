@@ -15,7 +15,7 @@
                 <div class="w-10 h-10 bg-gray-700 rounded-full grid place-items-center">
                     <span class="text-lg font-semibold">P</span>
                 </div>
-                <h1 class="font-semibold text-lg">PETSHOP ADMIN</h1>
+                <h1 class="font-semibold text-lg">PETTRY ADMIN</h1>
             </div>
 
             <nav class="flex-1 space-y-2">

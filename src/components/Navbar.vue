@@ -13,7 +13,7 @@
 
         <div class="flex items-center gap-4">
             <button class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">🔔</button>
-            <button class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">⚙️</button>
+            <button @click="goSettings" class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">⚙️</button>
             <ThemeToggle />
             <button
                 @click="logout"
@@ -31,5 +31,8 @@ const router = useRouter()
 function logout() {
     localStorage.removeItem('auth_token')
     router.push({ name: 'login' })
+}
+function goSettings() {
+    router.push('/settings')
 }
 </script>
