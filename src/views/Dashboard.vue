@@ -1,12 +1,19 @@
 <template>
+	
 	<div class="flex min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
     	<Sidebar :isOpen="isOpen" @close="isOpen = false" />
 
     	<div class="flex-1 flex flex-col md:ml-64">
       		<Navbar @toggle-sidebar="isOpen = !isOpen" />
 
-				<!-- Content -->
-				<main class="max-w-7xl mx-1 px-1 sm:px-6 lg:px-8 py-6">
+      <!-- Content -->
+      <main class="w-full py-8 px-4 sm:px-6 lg:px-8">
+        <div class="space-y-8 max-w-6xl ml-36">
+			<div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">Your application dashboard</p>
+          </div>
+
 					<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 						<div v-for="card in cards" :key="card.title" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-soft">
 							<div class="flex items-center justify-between">
@@ -38,9 +45,10 @@
 							</ul>
 						</section>
 					</div>
-				</main>
-		</div>
-	</div>
+        </div>
+      </main>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">

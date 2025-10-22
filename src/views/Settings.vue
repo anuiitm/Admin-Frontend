@@ -6,14 +6,13 @@
       <Navbar @toggle-sidebar="isOpen = !isOpen" />
 
       <!-- Content -->
-      <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
-          <p class="mt-2 text-gray-600 dark:text-gray-400">Configure your application settings</p>
-        </div>
-
-      <div class="space-y-8">
+      <main class="w-full py-8 px-4 sm:px-6 lg:px-8">
+        <div class="space-y-8 max-w-6xl ml-36">
+          <!-- Header -->
+          <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">Configure your application settings</p>
+          </div>
         <!-- Payment Modes Section -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
           <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -21,7 +20,7 @@
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Select the payment methods you want to enable</p>
           </div>
           <div class="p-6">
-            <div class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label 
                 v-for="mode in paymentModes" 
                 :key="mode.id"
@@ -53,7 +52,7 @@
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Set delivery charges for different delivery types</p>
           </div>
           <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <!-- Express Delivery -->
               <div>
                 <label for="expressDelivery" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -109,7 +108,7 @@
           </div>
           <div class="p-6">
             <!-- Add Pincode Input -->
-            <div class="flex space-x-3 mb-4">
+            <div class="flex space-x-3 mb-4 max-w-md">
               <div class="flex-1">
                 <input
                   type="text"
