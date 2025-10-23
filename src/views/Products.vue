@@ -5,8 +5,8 @@
     <div class="flex-1 flex flex-col md:ml-64">
       <Navbar @toggle-sidebar="isOpen = !isOpen" />
 
-      <main class="w-full py-8 px-4 sm:px-6 lg:px-8">
-        <div class="space-y-8 max-w-6xl ml-36">
+      <main class="w-full py-8 px-8 sm:px-6 lg:px-8">
+        <div class="space-y-8 max-w-6xl ml-4">
           <div class="mb-8 flex justify-between items-center">
             <div>
               <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Products</h1>
