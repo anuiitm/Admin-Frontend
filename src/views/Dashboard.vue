@@ -31,7 +31,7 @@
 							<ul class="mt-4 divide-y divide-gray-100 dark:divide-gray-700">
 								<li v-for="order in 5" :key="order" class="flex items-center justify-between py-3">
 									<span class="text-sm text-gray-700 dark:text-gray-200">Order #{{ 1000 + order }}</span>
-									<span class="text-xs text-gray-500">2 items • ${{ (order*24).toFixed(2) }}</span>
+									<span class="text-xs text-gray-500">2 items • ₹{{ (order*24).toFixed(2) }}</span>
 								</li>
 							</ul>
 						</section>
@@ -40,7 +40,7 @@
 							<ul class="mt-4 space-y-3">
 								<li v-for="p in products" :key="p" class="flex items-center justify-between">
 									<span class="text-sm text-gray-700 dark:text-gray-200">{{ p }}</span>
-									<span class="text-xs text-gray-500">1,2k sold</span>
+									<span class="text-xs text-gray-500">1.2k sold</span>
 								</li>
 							</ul>
 						</section>
@@ -61,7 +61,7 @@ const isOpen = ref(false)
 const router = useRouter()
 
 const cards = ref([
-	{ title: 'Revenue', value: '$12,340', delta: '+8% from last week', badge: 'Live', badgeClass: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
+	{ title: 'Revenue', value: '₹12,340', delta: '+8% from last week', badge: 'Live', badgeClass: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
 	{ title: 'Orders', value: '238', delta: '+3% from last week', badge: 'Today', badgeClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
 	{ title: 'Customers', value: '1,024', delta: '+1% from last week', badge: 'All', badgeClass: 'bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-300' },
 	{ title: 'Inventory', value: '342', delta: '-2% restock soon', badge: 'Watch', badgeClass: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300' },
