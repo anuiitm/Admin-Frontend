@@ -278,6 +278,22 @@
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tags (comma separated)</label>
               <input v-model="tagsInput" type="text" placeholder="premium, organic, bestseller" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white bg-white text-gray-900">
             </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                @change="handleImageUpload"
+                class="w-full text-gray-900 dark:text-white"
+              />
+              <div v-if="imagePreview" class="mt-2">
+                <img
+                  :src="imagePreview"
+                  alt="Preview"
+                  class="w-32 h-32 object-cover rounded-md border border-gray-300 dark:border-gray-600"
+                />
+              </div>
+            </div>
             <div class="flex space-x-3 pt-4">
               <button @click="saveProduct" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
                 Save Changes
@@ -370,7 +386,7 @@
         </div>
         <div class="px-6 py-4">
           <p class="text-gray-600 dark:text-gray-400 mb-4">
-            Are you sure you want to delete "{{ productToDelete?.name }}"? This action cannot be undone.
+            Are you sure you want to delete "{{ productToDelete ? productToDelete.name : '' }}"? This action cannot be undone.
           </p>
           <div class="flex space-x-3">
             <button @click="confirmDelete" class="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
@@ -423,6 +439,8 @@ const editingProduct = ref<Product | null>(null)
 const selectedProduct = ref<Product | null>(null)
 const productToDelete = ref<Product | null>(null)
 const tagsInput = ref('')
+const imageFile = ref<File | null>(null)
+const imagePreview = ref<string | null>(null)
 
 // Filter options
 const categories = ref(['Food', 'Toys', 'Accessories', 'Health', 'Grooming', 'Beds'])
@@ -576,7 +594,7 @@ const editProduct = (product: Product) => {
     id: product.id,
     name: product.name,
     description: product.description,
-    image: product.image,
+    image: product.image, 
     tags: [...product.tags],
     sku: product.sku,
     price: product.price,
@@ -585,8 +603,22 @@ const editProduct = (product: Product) => {
     petType: product.petType,
     status: product.status
   }
+  imagePreview.value = product.image
+  imageFile.value = null
   tagsInput.value = product.tags.join(', ')
   showEditModal.value = true
+}
+
+const handleImageUpload = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files[0]) {
+    imageFile.value = target.files[0]
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      imagePreview.value = e.target?.result as string
+    }
+    reader.readAsDataURL(imageFile.value)
+  }
 }
 
 const closeEditModal = () => {
@@ -633,20 +665,23 @@ const saveProduct = () => {
     if (index !== -1) {
       // Update tags from input
       editingProduct.value.tags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag)
-      products.value[index] = editingProduct.value
+      editingProduct.value.image = imageFile.value ? URL.createObjectURL(imageFile.value) : editingProduct.value.image
+      products.value[index] = { ...editingProduct.value }
     }
   }
   closeEditModal()
 }
 
-type NewProduct = Omit<Product, 'id' | 'image'> & { image?: string }
+type NewProduct = Omit<Product, 'id' | 'image'> & { image?: File | null  }
 
 const handleProductSaved = (newProduct: NewProduct) => {
-  const productToAdd: Product = {
+  const imageUrl = newProduct.image
+    ? URL.createObjectURL(newProduct.image) // create preview URL for uploaded image
+    : 'https://images.unsplash.com/photo-1579389083046-e3df9c2b3325?w=100&h=100&fit=crop&crop=center'
+  
+    const productToAdd: Product = {
     id: `prod-${Date.now()}`,
-    image:
-      newProduct.image ||
-      'https://images.unsplash.com/photo-1579389083046-e3df9c2b3325?w=100&h=100&fit=crop&crop=center',
+    image: imageUrl,
     name: newProduct.name,
     description: newProduct.description,
     tags: [...newProduct.tags],

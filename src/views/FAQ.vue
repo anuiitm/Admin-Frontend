@@ -245,7 +245,7 @@
         </div>
         <div class="px-6 py-4">
           <p class="text-gray-600 dark:text-gray-400 mb-4">
-            Are you sure you want to delete "{{ FAQToDelete?.question }}"? This action cannot be undone.
+            Are you sure you want to delete "{{ FAQToDelete ? FAQToDelete.question : '' }}"? This action cannot be undone.
           </p>
           <div class="flex space-x-3">
             <button @click="confirmDelete" class="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
