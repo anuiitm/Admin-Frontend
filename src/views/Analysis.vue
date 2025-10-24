@@ -7,7 +7,7 @@
 
       <!-- Content -->
       <main class="w-full py-8 px-4 sm:px-6 lg:px-8">
-        <div class="space-y-8 max-w-6xl ml-36">
+        <div class="space-y-8 max-w-6xl ml-4">
           <!-- Header -->
           <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Product Analysis</h1>
