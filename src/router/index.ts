@@ -9,6 +9,7 @@ import Promo from '@/views/Promo.vue'
 import Customers from '@/views/Customers.vue'
 import Analysis from '@/views/Analysis.vue'
 import FAQ from '@/views/FAQ.vue'
+import SearchResults from '@/views/SearchResults.vue'
 
 export const isAuthenticated = (): boolean => {
 	return localStorage.getItem('auth_token') !== null
@@ -26,6 +27,7 @@ const routes = [
 	{ path: '/customers', name: 'customers', component: Customers, meta: { requiresAuth: true } },
 	{ path: '/analysis', name: 'analysis', component: Analysis, meta: { requiresAuth: true } },
 	{ path: '/faq', name: 'faq', component: FAQ, meta: { requiresAuth: true } },
+	{ path: '/search', name: 'SearchResults', component: SearchResults, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({
