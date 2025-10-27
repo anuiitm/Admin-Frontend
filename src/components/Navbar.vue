@@ -5,10 +5,13 @@
         <button @click="$emit('toggle-sidebar')" class="md:hidden p-2 rounded bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"> ☰ </button>
         <div class="flex items-center w-full max-w-md">
             <input
+                v-model="searchQuery"
+                @keyup.enter="handleSearch"
                 type="text"
                 placeholder="🔎 Search products, orders..."
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:outline-none"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white bg-white"
             />
+            <button @click="handleSearch" class="mx-4 px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition duration-200">Go</button>
         </div>
 
         <div class="flex items-center gap-4">
@@ -77,9 +80,16 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 
+const searchQuery = ref('')
 const router = useRouter()
-const showNotifications = ref(false)
 
+function handleSearch() {
+  if (searchQuery.value.trim().toLowerCase()) {
+    router.push({ name: 'SearchResults', query: { q: searchQuery.value } })
+  }
+}
+
+const showNotifications = ref(false)
 // Sample notifications data
 const notifications = ref([
     {
