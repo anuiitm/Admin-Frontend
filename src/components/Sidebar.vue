@@ -45,7 +45,7 @@ const menu = [
     { label: 'Orders', icon: 'fa-solid fa-box-open', path: 'orders' },
     { label: 'Products', icon: 'fa-solid fa-bone', path: 'products'},
     { label: 'Inventory', icon: 'fa-solid fa-warehouse', path: 'inventory' },
-    { label: 'Promo codes', icon: 'fa-solid fa-ticket', path: 'promo' },
+    { label: 'Promo Codes', icon: 'fa-solid fa-ticket', path: 'promo' },
     { label: 'Customers', icon: 'fa-solid fa-users', path: 'customers' },
     { label: 'Product Analysis', icon: 'fa-solid fa-chart-line', path: 'analysis' },
     { label: 'FAQ', icon: 'fa-solid fa-circle-question', path: 'faq' }

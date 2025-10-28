@@ -297,7 +297,7 @@ const faqs = ref<FAQ[]>([
   {
     id: '1',
     question: "How can I reset my password?",
-    answer: "Click on 'Forgot Password' on the login screen and follow the instructions to reset your password.",
+    answer: "Click on 'Forgot Password' on the login screen and follow the instructions.",
     categories: ['General'],
     feedback: 'helpful'
   },
@@ -307,6 +307,48 @@ const faqs = ref<FAQ[]>([
     answer: "To request a refund, go to your Orders page, select the item, and click ‘Request Refund’.",
     categories: ['Payments'],
     feedback: 'helpful'
+  },
+  {
+    id: '3',
+    question: "How do I track my delivery?",
+    answer: "Once your order ships, you'll receive a tracking number.",
+    categories: ['Delivery'],
+    feedback: 'helpful'
+  },
+  {
+    id: '4',
+    question: "How do I apply a discount code?",
+    answer: "During checkout, enter your discount code in the ‘Promo Code’ field and click ‘Apply’.",
+    categories: ['Discount'],
+    feedback: 'helpful'
+  },
+  {
+    id: '5',
+    question: "Why isn't my coupon working?",
+    answer: "Ensure your coupon hasn't expired and that it applies to the selected products.",
+    categories: ['Discount'],
+    feedback: 'helpful'
+  },
+  {
+    id: '6',
+    question: "What payment methods do you accept?",
+    answer: "We accept credit/debit cards, UPI, wallets, and net banking for payments.",
+    categories: ['Payments'],
+    feedback: 'helpful'
+  },
+  {
+    id: '7',
+    question: "Is there a warranty on products?",
+    answer: "Yes, most products come with a standard manufacturer's warranty.",
+    categories: ['Product'],
+    feedback: 'helpful'
+  },
+  {
+    id: '8',
+    question: "Do you offer international delivery?",
+    answer: "Currently, we only deliver within India. International shipping will be available soon.",
+    categories: ['Delivery'],
+    feedback: 'not helpful'
   }
 ])
 

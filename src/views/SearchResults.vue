@@ -516,35 +516,35 @@ const customers = ref<Customer[]>([
 const orders = ref<Order[]>([
   {
     id: '1234',
-    date: '2024-01-15',
+    date: '2025-09-15',
     customer: 'John Doe',
     total: 2500,
     status: 'processing'
   },
   {
     id: '1235',
-    date: '2024-01-14',
+    date: '2025-09-14',
     customer: 'Jane Smith',
     total: 1800,
     status: 'shipped'
   },
   {
     id: '1236',
-    date: '2024-01-13',
+    date: '2025-09-13',
     customer: 'Mike Johnson',
     total: 3200,
     status: 'completed'
   },
   {
     id: '1237',
-    date: '2024-01-12',
+    date: '2025-09-12',
     customer: 'Sarah Wilson',
     total: 1500,
     status: 'cancelled'
   },
   {
     id: '1238',
-    date: '2024-01-11',
+    date: '2025-09-11',
     customer: 'David Brown',
     total: 2800,
     status: 'processing'
