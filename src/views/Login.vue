@@ -14,13 +14,7 @@
 				<div class="flex items-center gap-3 mb-6">
 					<div class="bg-white/20 p-3 rounded-xl shadow-soft">
 						<!-- Simple paw icon -->
-						<svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<path d="M12 21c4 0 7-2.5 7-5.5 0-2-2.5-3.5-5-2-1-.5-2-.5-3 0-2.5-1.5-5 0-5 2 0 3 3 5.5 7 5.5Z" fill="currentColor"/>
-							<circle cx="5.5" cy="8.5" r="2.5" fill="currentColor"/>
-							<circle cx="18.5" cy="8.5" r="2.5" fill="currentColor"/>
-							<circle cx="9.5" cy="5.5" r="2.5" fill="currentColor"/>
-							<circle cx="14.5" cy="5.5" r="2.5" fill="currentColor"/>
-						</svg>
+						<img src="/paws.png" alt="Paw Logo" class="w-8 h-8" />
 					</div>
 					<h1 class="text-3xl font-semibold tracking-tight">PETTRY ADMIN</h1>
 				</div>

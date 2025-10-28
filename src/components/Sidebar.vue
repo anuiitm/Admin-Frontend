@@ -11,12 +11,15 @@
             class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white w-64 min-h-screen p-4 flex flex-col fixed inset-y-0 left-0 transform transition-transform duration-300 z-30 -translate-x-full md:translate-x-0 border-r border-gray-200 dark:border-gray-700"
             :class="{ 'translate-x-0': props.isOpen }"
         >
-            <div class="flex items-center gap-2 mb-8">
-                <div class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full grid place-items-center">
-                    <span class="text-lg font-semibold text-gray-800 dark:text-white">P</span>
+            
+                <div class="flex items-center gap-2 mb-8">
+                
+                <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full grid place-items-center">
+                    <a href="/"><span class="text-lg font-semibold text-gray-800 dark:text-white"><img src="/paws.png" alt="Paw Logo" class="w-8 h-8" /></span></a>
                 </div>
-                <h1 class="font-semibold text-lg">PETTRY ADMIN</h1>
+                <a href="/"><h1 class="font-semibold text-lg">PETTRY ADMIN</h1></a>
             </div>
+        
 
             <nav class="flex-1 space-y-2">
                 <a
