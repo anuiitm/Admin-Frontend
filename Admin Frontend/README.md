@@ -14,15 +14,15 @@ Make sure you have [Node.js](https://nodejs.org/) and `npm` (or `yarn`) installe
 
 ### Installation & Running
 
-1.  **Clone the repository:**
+1.  **Go to the repository:**
     ```bash
-    git clone https://github.com/anuiitm/Admin-Frontend
     cd Admin-Frontend
     ```
 
-2.  **Install dependencies:**
+2.  **Remove node and then Reinstall dependencies:**
     This command will install all the necessary packages and libraries defined in your `package.json` file.
     ```bash
+    rm -rf node_modules package-lock.json
     npm install
     ```
 
