@@ -3,15 +3,38 @@
         class="flex items-center justify-between bg-white dark:bg-gray-800 p-4 shadow-md"
     >
         <button @click="$emit('toggle-sidebar')" class="md:hidden p-2 rounded bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"> ☰ </button>
-        <div class="flex items-center w-full max-w-md">
-            <input
-                v-model="searchQuery"
-                @keyup.enter="handleSearch"
-                type="text"
-                placeholder="🔎 Search products, orders..."
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white bg-white"
-            />
-            <button @click="handleSearch" class="mx-4 px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition duration-200">Go</button>
+        <div class="flex items-center w-full max-w-3xl">
+            <div class="flex items-center w-full space-x-2">
+                <!-- Search Entity Dropdown -->
+                <select
+                    v-model="searchEntity"
+                    class="w-32 h-10 px-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white bg-white text-gray-900 text-sm"
+                >
+                    <option value="all">All</option>
+                    <option value="products">Products</option>
+                    <option value="customers">Customers</option>
+                    <option value="orders">Orders</option>
+                </select>
+                
+                <!-- Search Input -->
+                <input
+                    v-model="searchQuery"
+                    @keyup.enter="handleSearch"
+                    type="text"
+                    :placeholder="getSearchPlaceholder()"
+                    class="w-[55%] h-10 px-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white bg-white text-gray-900"
+                />
+                
+                <!-- Search Button -->
+                <button 
+                    @click="handleSearch" 
+                    class="w-20 h-10 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 flex items-center justify-center"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <div class="flex items-center gap-4">
