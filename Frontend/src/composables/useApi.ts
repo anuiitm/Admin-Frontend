@@ -1,5 +1,5 @@
 export function useApi() {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/admin'
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api/admin'
 
     const headers = (): HeadersInit => {
         const token = localStorage.getItem('auth_token')

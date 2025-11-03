@@ -132,7 +132,10 @@
                   <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     <tr v-for="product in filteredProducts" :key="product.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td class="px-6 py-4 whitespace-nowrap">
-                        <img :src="product.image" :alt="product.name" class="h-12 w-12 rounded-lg object-cover" />
+                        <img v-if="product.image" :src="product.image.startsWith('http') ? product.image : `http://localhost:5001${product.image}`" :alt="product.name" class="h-12 w-12 rounded-lg object-cover" />
+                        <div v-else class="h-12 w-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                          <span class="text-xs text-gray-500 dark:text-gray-400">No image</span>
+                        </div>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900 dark:text-white">{{ product.name }}</div>
@@ -606,7 +609,7 @@ const handleProductSaved = async (_newProduct: NewProduct) => {
       id: String(p.product_id),
       name: p.name,
       description: p.description || '',
-      image: p.main_image_url || '',
+      image: p.main_image_url ? (p.main_image_url.startsWith('http') ? p.main_image_url : `http://localhost:5001${p.main_image_url}`) : '',
       tags: (p.tags ? String(p.tags).split(',').map((t: string) => t.trim()).filter(Boolean) : []),
       sku: p.sku,
       price: p.price,
@@ -625,7 +628,7 @@ onMounted(async () => {
       id: String(p.product_id),
       name: p.name,
       description: p.description || '',
-      image: p.main_image_url || '',
+      image: p.main_image_url ? (p.main_image_url.startsWith('http') ? p.main_image_url : `http://localhost:5001${p.main_image_url}`) : '',
       tags: (p.tags ? String(p.tags).split(',').map((t: string) => t.trim()).filter(Boolean) : []),
       sku: p.sku,
       price: p.price,
