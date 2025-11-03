@@ -271,9 +271,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Navbar from '@/components/Navbar.vue'
+import { useApi } from '@/composables/useApi'
 
 interface Customer {
   id: string
@@ -297,99 +298,10 @@ const selectedStatus = ref('')
 const selectedLocation = ref('')
 
 // Filter options
-const locations = ref(['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata', 'Hyderabad', 'Pune', 'Ahmedabad'])
+const locations = ref<string[]>([])
 
-// Sample customers data
-const customers = ref<Customer[]>([
-  {
-    id: '1',
-    userId: 'CUST001',
-    name: 'Rajesh Kumar',
-    email: 'rajesh.kumar@email.com',
-    dateJoined: '2023-01-15',
-    location: 'Mumbai',
-    totalSpends: 25000,
-    totalOrders: 12,
-    status: 'active'
-  },
-  {
-    id: '2',
-    userId: 'CUST002',
-    name: 'Priya Sharma',
-    email: 'priya.sharma@email.com',
-    dateJoined: '2023-02-20',
-    location: 'Delhi',
-    totalSpends: 18000,
-    totalOrders: 8,
-    status: 'active'
-  },
-  {
-    id: '3',
-    userId: 'CUST003',
-    name: 'Amit Patel',
-    email: 'amit.patel@email.com',
-    dateJoined: '2023-03-10',
-    location: 'Bangalore',
-    totalSpends: 32000,
-    totalOrders: 15,
-    status: 'active'
-  },
-  {
-    id: '4',
-    userId: 'CUST004',
-    name: 'Sneha Reddy',
-    email: 'sneha.reddy@email.com',
-    dateJoined: '2023-01-05',
-    location: 'Chennai',
-    totalSpends: 12000,
-    totalOrders: 6,
-    status: 'blocked'
-  },
-  {
-    id: '5',
-    userId: 'CUST005',
-    name: 'Vikram Singh',
-    email: 'vikram.singh@email.com',
-    dateJoined: '2023-04-12',
-    location: 'Kolkata',
-    totalSpends: 45000,
-    totalOrders: 20,
-    status: 'active'
-  },
-  {
-    id: '6',
-    userId: 'CUST006',
-    name: 'Anita Desai',
-    email: 'anita.desai@email.com',
-    dateJoined: '2023-02-28',
-    location: 'Hyderabad',
-    totalSpends: 15000,
-    totalOrders: 7,
-    status: 'active'
-  },
-  {
-    id: '7',
-    userId: 'CUST007',
-    name: 'Rohit Agarwal',
-    email: 'rohit.agarwal@email.com',
-    dateJoined: '2023-03-25',
-    location: 'Pune',
-    totalSpends: 8000,
-    totalOrders: 4,
-    status: 'blocked'
-  },
-  {
-    id: '8',
-    userId: 'CUST008',
-    name: 'Kavita Joshi',
-    email: 'kavita.joshi@email.com',
-    dateJoined: '2023-01-30',
-    location: 'Ahmedabad',
-    totalSpends: 28000,
-    totalOrders: 14,
-    status: 'active'
-  }
-])
+const customers = ref<Customer[]>([])
+const api = useApi()
 
 // Computed properties
 const activeCustomersCount = computed(() => {
@@ -508,4 +420,24 @@ const exportCustomers = () => {
   link.click()
   document.body.removeChild(link)
 }
+
+onMounted(async () => {
+  try {
+    const data = await api.get<any[]>(`/users`)
+    customers.value = data.map(u => ({
+      id: String(u.user_id),
+      userId: u.customer_code || String(u.user_id),
+      name: u.full_name,
+      email: u.email,
+      dateJoined: u.date_joined,
+      location: `${u.city || ''}${u.state ? ', ' + u.state : ''}`.trim(),
+      totalSpends: 0,
+      totalOrders: 0,
+      status: u.is_active ? 'active' : 'blocked'
+    }))
+    const locs = new Set<string>()
+    customers.value.forEach(c => { if (c.location) locs.add(c.location) })
+    locations.value = Array.from(locs)
+  } catch (e) { /* noop */ }
+})
 </script>

@@ -7,6 +7,9 @@
 
       <main class="w-full py-8 px-4 sm:px-6 lg:px-8">
         <div class="space-y-8 max-w-6xl ml-4">
+          <div v-if="errorMsg" class="mb-4 rounded-lg border border-red-300 bg-red-50 text-red-700 px-3 py-2 text-sm">
+            {{ errorMsg }}
+          </div>
           <div class="mb-8 flex justify-between items-center">
             <div>
               <h1 class="text-3xl font-bold text-gray-900 dark:text-white">FAQ</h1>
@@ -262,10 +265,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed  } from 'vue'
+import { ref, computed, onMounted  } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Navbar from '@/components/Navbar.vue'
 import AddFAQ from '@/views/AddFAQ.vue'
+import { useApi } from '@/composables/useApi'
 
 interface FAQ {
   id: string
@@ -290,67 +294,11 @@ const FAQToDelete = ref<FAQ | null>(null)
 const categoriesInput = ref('')
 
 // Filter options
-const categories = ref(['General', 'Product', 'Delivery', 'Discount', 'Payments'])
+const categories = ref<string[]>([])
 
-// Sample FAQ data
-const faqs = ref<FAQ[]>([
-  {
-    id: '1',
-    question: "How can I reset my password?",
-    answer: "Click on 'Forgot Password' on the login screen and follow the instructions.",
-    categories: ['General'],
-    feedback: 'helpful'
-  },
-  {
-    id: '2',
-    question: "How do I request a refund?",
-    answer: "To request a refund, go to your Orders page, select the item, and click ‘Request Refund’.",
-    categories: ['Payments'],
-    feedback: 'helpful'
-  },
-  {
-    id: '3',
-    question: "How do I track my delivery?",
-    answer: "Once your order ships, you'll receive a tracking number.",
-    categories: ['Delivery'],
-    feedback: 'helpful'
-  },
-  {
-    id: '4',
-    question: "How do I apply a discount code?",
-    answer: "During checkout, enter your discount code in the ‘Promo Code’ field and click ‘Apply’.",
-    categories: ['Discount'],
-    feedback: 'helpful'
-  },
-  {
-    id: '5',
-    question: "Why isn't my coupon working?",
-    answer: "Ensure your coupon hasn't expired and that it applies to the selected products.",
-    categories: ['Discount'],
-    feedback: 'helpful'
-  },
-  {
-    id: '6',
-    question: "What payment methods do you accept?",
-    answer: "We accept credit/debit cards, UPI, wallets, and net banking for payments.",
-    categories: ['Payments'],
-    feedback: 'helpful'
-  },
-  {
-    id: '7',
-    question: "Is there a warranty on products?",
-    answer: "Yes, most products come with a standard manufacturer's warranty.",
-    categories: ['Product'],
-    feedback: 'helpful'
-  },
-  {
-    id: '8',
-    question: "Do you offer international delivery?",
-    answer: "Currently, we only deliver within India. International shipping will be available soon.",
-    categories: ['Delivery'],
-    feedback: 'not helpful'
-  }
-])
+const faqs = ref<FAQ[]>([])
+const api = useApi()
+const errorMsg = ref('')
 
 // Computed properties
 const filteredFAQ = computed(() => {
@@ -420,41 +368,41 @@ const closeDeleteModal = () => {
   FAQToDelete.value = null
 }
 
-const confirmDelete = () => {
+const confirmDelete = async () => {
   if (FAQToDelete.value) {
-    const index = faqs.value.findIndex(faq => faq.id === FAQToDelete.value!.id)
-    if (index !== -1) {
-      faqs.value.splice(index, 1)
-    }
+    try { await api.del(`/faqs/${FAQToDelete.value.id}`) } catch (e) { /* noop */ }
+    faqs.value = faqs.value.filter(f => f.id !== FAQToDelete.value!.id)
   }
   closeDeleteModal()
 }
 
-const saveFAQ = () => {
+const saveFAQ = async () => {
   if (editingFAQ.value) {
-    const index = faqs.value.findIndex(faq => faq.id === editingFAQ.value!.id)
-    if (index !== -1) {
-      // Update categories from input
-      editingFAQ.value.categories = categoriesInput.value.split(',').map(category => category.trim()).filter(category => category)
-      faqs.value[index] = { ...editingFAQ.value }
-    }
+    const body = { question: editingFAQ.value.question, answer: editingFAQ.value.answer, category: editingFAQ.value.categories[0] || 'General', is_active: true }
+    try { await api.put(`/faqs/${editingFAQ.value.id}`, body) } catch (e) { /* noop */ }
   }
   closeEditModal()
 }
 
 type NewFAQ = Omit<FAQ, 'id'> & { feedback?: string }
 
-const handleFAQSaved = (newFAQ: NewFAQ) => {
-  const faqToAdd: FAQ = {
-    id: `faq-${Date.now()}`, 
-    question: newFAQ.question,
-    answer: newFAQ.answer,
-    categories: newFAQ.categories.map(c => c.trim()).filter(c => c),
-    feedback: newFAQ.feedback || ''
-  }
-
-  faqs.value.unshift(faqToAdd) 
-  showAddFAQPage.value = false 
+const handleFAQSaved = async (newFAQ: NewFAQ) => {
+  const body = { question: newFAQ.question, answer: newFAQ.answer, category: newFAQ.categories[0] || 'General', is_active: true }
+  try { errorMsg.value = ''; await api.post(`/faqs`, body) } catch (e: any) { errorMsg.value = e?.message || 'Failed to create FAQ' }
+  showAddFAQPage.value = false
+  await fetchFaqs()
 }
+
+async function fetchFaqs() {
+  try {
+    const data = await api.get<any[]>(`/faqs`)
+    faqs.value = data.map(f => ({ id: String(f.faq_id), question: f.question, answer: f.answer, categories: [f.category], feedback: '' }))
+    const set = new Set<string>()
+    faqs.value.forEach(f => f.categories.forEach(c => set.add(c)))
+    categories.value = Array.from(set)
+  } catch (e) { /* noop */ }
+}
+
+onMounted(fetchFaqs)
 
 </script>

@@ -266,17 +266,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Navbar from '@/components/Navbar.vue'
+import { useApi } from '@/composables/useApi'
 
-interface Order {
-  id: string
-  date: string
-  customer: string
-  total: number
-  status: string
-}
+interface Order { id: string; date: string; customer: string; total: number; status: string }
 
 const isOpen = ref(false)
 const activeTab = ref('all')
@@ -298,51 +293,8 @@ const statusTabs = ref([
   { key: 'cancelled', label: 'Cancelled', count: 0 }
 ])
 
-// Sample orders data
-const orders = ref<Order[]>([
-  {
-    id: '1234',
-    date: '2025-09-15',
-    customer: 'John Doe',
-    total: 2500,
-    status: 'processing'
-  },
-  {
-    id: '1235',
-    date: '2025-09-14',
-    customer: 'Jane Smith',
-    total: 1800,
-    status: 'shipped'
-  },
-  {
-    id: '1236',
-    date: '2025-09-13',
-    customer: 'Mike Johnson',
-    total: 3200,
-    status: 'completed'
-  },
-  {
-    id: '1237',
-    date: '2025-09-12',
-    customer: 'Sarah Wilson',
-    total: 1500,
-    status: 'cancelled'
-  },
-  {
-    id: '1238',
-    date: '2025-09-11',
-    customer: 'David Brown',
-    total: 2800,
-    status: 'processing'
-  },
-  {
-    id: '1239',
-    date: '2025-09-10',
-    customer: 'Lisa Davis',
-    total: 2100,
-    status: 'shipped'
-  }
-])
+const orders = ref<Order[]>([])
+const api = useApi()
 
 // Computed properties
 const filteredOrders = computed(() => {
@@ -453,6 +405,17 @@ const updateTabCounts = () => {
   })
 }
 
-// Initialize tab counts
-updateTabCounts()
+onMounted(async () => {
+  try {
+    const data = await api.get<any[]>(`/orders`)
+    orders.value = data.map(o => ({
+      id: String(o.order_id),
+      date: o.order_date ? new Date(o.order_date).toISOString().slice(0,10) : '',
+      customer: String(o.user_id),
+      total: o.total_price,
+      status: o.order_status || 'processing'
+    }))
+  } catch (e) { /* noop */ }
+  updateTabCounts()
+})
 </script>

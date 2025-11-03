@@ -335,9 +335,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Navbar from '@/components/Navbar.vue'
+import { useApi } from '@/composables/useApi'
 
 interface Product {
   id: string
@@ -365,84 +366,11 @@ const selectedStockStatus = ref('')
 const stockUpdates = ref<Record<string, number>>({})
 
 // Filter options
-const categories = ref(['Food', 'Toys', 'Accessories', 'Health', 'Grooming', 'Beds'])
-const petTypes = ref(['Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Hamster'])
+const categories = ref<string[]>([])
+const petTypes = ref<string[]>([])
 
-// Sample products data (same as Products page)
-const products = ref<Product[]>([
-  {
-    id: '1',
-    name: 'Premium Dog Food',
-    description: 'High-quality nutrition for adult dogs',
-    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop&crop=center',
-    sku: 'DOG-FOOD-001',
-    price: 1200,
-    stock: 45,
-    category: 'Food',
-    petType: 'Dog',
-    status: 'active'
-  },
-  {
-    id: '2',
-    name: 'Cat Scratching Post',
-    description: 'Durable scratching post for cats',
-    image: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=100&h=100&fit=crop&crop=center',
-    sku: 'CAT-TOY-001',
-    price: 800,
-    stock: 12,
-    category: 'Toys',
-    petType: 'Cat',
-    status: 'active'
-  },
-  {
-    id: '3',
-    name: 'Aquarium Set',
-    description: 'Complete aquarium setup for fish',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=100&h=100&fit=crop&crop=center',
-    sku: 'FISH-TANK-001',
-    price: 2500,
-    stock: 3,
-    category: 'Accessories',
-    petType: 'Fish',
-    status: 'active'
-  },
-  {
-    id: '4',
-    name: 'Bird Cage',
-    description: 'Spacious cage for small birds',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=100&h=100&fit=crop&crop=center',
-    sku: 'BIRD-CAGE-001',
-    price: 1500,
-    stock: 0,
-    category: 'Accessories',
-    petType: 'Bird',
-    status: 'inactive'
-  },
-  {
-    id: '5',
-    name: 'Dog Leash',
-    description: 'Strong and comfortable dog leash',
-    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop&crop=center',
-    sku: 'DOG-LEASH-001',
-    price: 300,
-    stock: 8,
-    category: 'Accessories',
-    petType: 'Dog',
-    status: 'active'
-  },
-  {
-    id: '6',
-    name: 'Cat Health Supplements',
-    description: 'Essential vitamins for cat health',
-    image: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=100&h=100&fit=crop&crop=center',
-    sku: 'CAT-HEALTH-001',
-    price: 600,
-    stock: 25,
-    category: 'Health',
-    petType: 'Cat',
-    status: 'active'
-  }
-])
+const products = ref<Product[]>([])
+const api = useApi()
 
 // Computed properties
 const totalInventoryValue = computed(() => {
@@ -540,30 +468,44 @@ const decrementStock = (productId: string) => {
   }
 }
 
-const notifyUsers = () => {
-  // In a real app, this would send notifications to users
-  alert('Users have been notified about stock updates!')
-}
+const notifyUsers = () => {}
 
-const updateInventory = () => {
-  // Update stock for all products
-  Object.keys(stockUpdates.value).forEach(productId => {
-    const product = products.value.find(p => p.id === productId)
-    if (product) {
-      product.stock = stockUpdates.value[productId]
-    }
-  })
-  
-  // Clear updates and close modal
+const updateInventory = async () => {
+  const entries = Object.entries(stockUpdates.value)
+  for (const [id, qty] of entries) {
+    try {
+      await api.post(`/inventory/adjust`, { inventory_id: Number(id), quantity_change: Number(qty) })
+    } catch (e) { /* noop */ }
+  }
   stockUpdates.value = {}
   showUpdateModal.value = false
-  
-  // Show success message
-  alert('Inventory updated successfully!')
+  // refetch
+  await fetchInventory()
 }
 
 const closeUpdateModal = () => {
   showUpdateModal.value = false
   stockUpdates.value = {}
 }
+
+async function fetchInventory() {
+  try {
+    const inv = await api.get<any[]>(`/inventory`)
+    // We need product info; for simplicity, show minimal fields
+    products.value = inv.map(i => ({
+      id: String(i.inventory_id),
+      name: `#${i.product_id}`,
+      description: '',
+      image: '',
+      sku: String(i.product_id),
+      price: 0,
+      stock: i.current_stock,
+      category: '',
+      petType: '',
+      status: i.stock_status
+    }))
+  } catch (e) { /* noop */ }
+}
+
+onMounted(() => { fetchInventory() })
 </script>

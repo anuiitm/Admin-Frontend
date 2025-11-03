@@ -403,10 +403,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Navbar from '@/components/Navbar.vue'
 import AddProduct from '@/views/AddProduct.vue'
+import { useApi } from '@/composables/useApi'
 
 interface Product {
   id: string
@@ -446,87 +447,9 @@ const imagePreview = ref<string | null>(null)
 const categories = ref(['Food', 'Toys', 'Accessories', 'Health', 'Grooming', 'Beds'])
 const petTypes = ref(['Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Hamster'])
 
-// Sample products data
-const products = ref<Product[]>([
-  {
-    id: '1',
-    name: 'Premium Dog Food',
-    description: 'High-quality nutrition for adult dogs',
-    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop&crop=center',
-    tags: ['premium', 'nutrition', 'adult'],
-    sku: 'DOG-FOOD-001',
-    price: 1200,
-    stock: 45,
-    category: 'Food',
-    petType: 'Dog',
-    status: 'active'
-  },
-  {
-    id: '2',
-    name: 'Cat Scratching Post',
-    description: 'Durable scratching post for cats',
-    image: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=100&h=100&fit=crop&crop=center',
-    tags: ['scratching', 'durable', 'indoor'],
-    sku: 'CAT-TOY-001',
-    price: 800,
-    stock: 12,
-    category: 'Toys',
-    petType: 'Cat',
-    status: 'active'
-  },
-  {
-    id: '3',
-    name: 'Aquarium Set',
-    description: 'Complete aquarium setup for fish',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=100&h=100&fit=crop&crop=center',
-    tags: ['aquarium', 'complete', 'fish'],
-    sku: 'FISH-TANK-001',
-    price: 2500,
-    stock: 3,
-    category: 'Accessories',
-    petType: 'Fish',
-    status: 'active'
-  },
-  {
-    id: '4',
-    name: 'Bird Cage',
-    description: 'Spacious cage for small birds',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=100&h=100&fit=crop&crop=center',
-    tags: ['cage', 'spacious', 'birds'],
-    sku: 'BIRD-CAGE-001',
-    price: 1500,
-    stock: 0,
-    category: 'Accessories',
-    petType: 'Bird',
-    status: 'inactive'
-  },
-  {
-    id: '5',
-    name: 'Dog Leash',
-    description: 'Strong and comfortable dog leash',
-    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop&crop=center',
-    tags: ['leash', 'strong', 'comfortable'],
-    sku: 'DOG-LEASH-001',
-    price: 300,
-    stock: 8,
-    category: 'Accessories',
-    petType: 'Dog',
-    status: 'active'
-  },
-  {
-    id: '6',
-    name: 'Cat Health Supplements',
-    description: 'Essential vitamins for cat health',
-    image: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=100&h=100&fit=crop&crop=center',
-    tags: ['health', 'vitamins', 'supplements'],
-    sku: 'CAT-HEALTH-001',
-    price: 600,
-    stock: 25,
-    category: 'Health',
-    petType: 'Cat',
-    status: 'active'
-  }
-])
+// Products data (start empty; to be populated from API)
+const products = ref<Product[]>([])
+const api = useApi()
 
 // Computed properties
 const filteredProducts = computed(() => {
@@ -674,25 +597,43 @@ const saveProduct = () => {
 
 type NewProduct = Omit<Product, 'id' | 'image'> & { image?: File | null  }
 
-const handleProductSaved = (newProduct: NewProduct) => {
-  const imageUrl = newProduct.image
-    ? URL.createObjectURL(newProduct.image) // create preview URL for uploaded image
-    : 'https://images.unsplash.com/photo-1579389083046-e3df9c2b3325?w=100&h=100&fit=crop&crop=center'
-  
-    const productToAdd: Product = {
-    id: `prod-${Date.now()}`,
-    image: imageUrl,
-    name: newProduct.name,
-    description: newProduct.description,
-    tags: [...newProduct.tags],
-    sku: newProduct.sku,
-    price: newProduct.price,
-    stock: newProduct.stock,
-    category: newProduct.category,
-    petType: newProduct.petType,
-    status: newProduct.status,
-  }
-  products.value.unshift(productToAdd)
+const handleProductSaved = async (_newProduct: NewProduct) => {
   showAddProductPage.value = false
+  // Refresh from API to reflect DB
+  try {
+    const data = await api.get<any[]>(`/products`)
+    products.value = data.map(p => ({
+      id: String(p.product_id),
+      name: p.name,
+      description: p.description || '',
+      image: p.main_image_url || '',
+      tags: (p.tags ? String(p.tags).split(',').map((t: string) => t.trim()).filter(Boolean) : []),
+      sku: p.sku,
+      price: p.price,
+      stock: p.stock,
+      category: p.category_name || '',
+      petType: p.pet_type || '',
+      status: p.status || 'active',
+    }))
+  } catch (e) { /* noop */ }
 }
+
+onMounted(async () => {
+  try {
+    const data = await api.get<any[]>(`/products`)
+    products.value = data.map(p => ({
+      id: String(p.product_id),
+      name: p.name,
+      description: p.description || '',
+      image: p.main_image_url || '',
+      tags: (p.tags ? String(p.tags).split(',').map((t: string) => t.trim()).filter(Boolean) : []),
+      sku: p.sku,
+      price: p.price,
+      stock: p.stock,
+      category: p.category_name || '',
+      petType: p.pet_type || '',
+      status: p.status || 'active',
+    }))
+  } catch (e) { /* noop */ }
+})
 </script>

@@ -180,10 +180,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import Navbar from '@/components/Navbar.vue'
+import { useApi } from '@/composables/useApi'
 
 const router = useRouter()
 const isOpen = ref(false)
@@ -217,12 +218,13 @@ const paymentModes = ref([
 ])
 
 // Reactive data
-const selectedPaymentModes = ref<string[]>(['upi', 'cod'])
+const api = useApi()
+const selectedPaymentModes = ref<string[]>([])
 const deliveryCharges = reactive({
-  express: 50,
-  normal: 20
+  express: 0,
+  normal: 0
 })
-const exemptedPincodes = ref<string[]>(['110001', '400001'])
+const exemptedPincodes = ref<string[]>([])
 const newPincode = ref('')
 
 // Methods
@@ -238,18 +240,39 @@ const removePincode = (index: number) => {
   exemptedPincodes.value.splice(index, 1)
 }
 
-const saveSettings = () => {
-  // Here you would typically save to your backend
-  console.log('Saving settings:', {
-    paymentModes: selectedPaymentModes.value,
-    deliveryCharges: deliveryCharges,
-    exemptedPincodes: exemptedPincodes.value
-  })
-  
-  // Show success message and navigate to dashboard
-  alert('Settings saved successfully!')
-  router.push({ name: 'dashboard' })
+const saveSettings = async () => {
+  const toUpsert = [
+    { key: 'payment_modes', value: JSON.stringify(selectedPaymentModes.value), group: 'payments', data_type: 'json' },
+    { key: 'delivery_charges_express', value: String(deliveryCharges.express), group: 'shipping', data_type: 'number' },
+    { key: 'delivery_charges_normal', value: String(deliveryCharges.normal), group: 'shipping', data_type: 'number' },
+    { key: 'exempt_pincodes', value: JSON.stringify(exemptedPincodes.value), group: 'shipping', data_type: 'json' },
+  ]
+  try {
+    const existing = await api.get<any[]>(`/settings`)
+    for (const s of toUpsert) {
+      const match = existing.find(e => e.key === s.key)
+      if (match) await api.put(`/settings/${match.setting_id}`, s)
+      else await api.post(`/settings`, s)
+    }
+    alert('Settings saved successfully!')
+    router.push({ name: 'dashboard' })
+  } catch (e) { /* noop */ }
 }
+
+onMounted(async () => {
+  try {
+    const settings = await api.get<any[]>(`/settings`)
+    const get = (k: string) => settings.find(s => s.key === k)?.value
+    const modes = get('payment_modes')
+    if (modes) selectedPaymentModes.value = JSON.parse(modes)
+    const ex = get('delivery_charges_express')
+    const no = get('delivery_charges_normal')
+    if (ex) deliveryCharges.express = Number(ex)
+    if (no) deliveryCharges.normal = Number(no)
+    const pins = get('exempt_pincodes')
+    if (pins) exemptedPincodes.value = JSON.parse(pins)
+  } catch (e) { /* noop */ }
+})
 </script>
 
 <style scoped>
