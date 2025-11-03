@@ -99,9 +99,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import { useApi } from '@/composables/useApi'
 
 const searchQuery = ref('')
 const searchEntity = ref('all')
@@ -130,37 +131,8 @@ function getSearchPlaceholder() {
 }
 
 const showNotifications = ref(false)
-// Sample notifications data
-const notifications = ref([
-    {
-        id: 1,
-        title: 'New Order Received',
-        message: 'Order #1234 has been placed by John Doe',
-        time: '2 minutes ago',
-        read: false
-    },
-    {
-        id: 2,
-        title: 'Low Stock Alert',
-        message: 'Premium Dog Food is running low (5 items left)',
-        time: '1 hour ago',
-        read: false
-    },
-    {
-        id: 3,
-        title: 'Payment Processed',
-        message: 'Payment of ₹2,500 has been successfully processed',
-        time: '3 hours ago',
-        read: true
-    },
-    {
-        id: 4,
-        title: 'Customer Review',
-        message: 'New 5-star review from Sarah Wilson',
-        time: '1 day ago',
-        read: true
-    }
-])
+const notifications = ref<{ id: number; title: string; message: string; time: string; read: boolean }[]>([])
+const api = useApi()
 
 // Computed properties
 const unreadCount = computed(() => {
@@ -172,17 +144,14 @@ function toggleNotifications() {
     showNotifications.value = !showNotifications.value
 }
 
-function markAsRead(id: number) {
-    const notification = notifications.value.find(n => n.id === id)
-    if (notification) {
-        notification.read = true
-    }
+async function markAsRead(id: number) {
+    try { await api.post(`/notifications/${id}/read`, {}) } catch (e) { /* noop */ }
+    const n = notifications.value.find(n => n.id === id)
+    if (n) n.read = true
 }
 
 function markAllAsRead() {
-    notifications.value.forEach(notification => {
-        notification.read = true
-    })
+    notifications.value.forEach(n => { n.read = true })
 }
 
 function logout() {
@@ -200,5 +169,12 @@ document.addEventListener('click', (event) => {
     if (!target.closest('.relative')) {
         showNotifications.value = false
     }
+})
+
+onMounted(async () => {
+  try {
+    const data = await api.get<any[]>(`/notifications`)
+    notifications.value = data.map(d => ({ id: Number(d.notification_id), title: d.title, message: d.message, time: new Date(d.created_at).toLocaleString(), read: d.is_read }))
+  } catch (e) { /* noop */ }
 })
 </script>

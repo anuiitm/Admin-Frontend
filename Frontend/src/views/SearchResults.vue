@@ -305,6 +305,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import Navbar from '@/components/Navbar.vue'
+import { useApi } from '@/composables/useApi'
 
 // Interfaces
 interface Product {
@@ -347,209 +348,11 @@ const searchQuery = ref('')
 const selectedEntity = ref('all')
 const hasSearched = ref(false)
 
-// Sample data (in a real app, this would come from an API)
-const products = ref<Product[]>([
-  {
-    id: '1',
-    name: 'Premium Dog Food',
-    description: 'High-quality nutrition for adult dogs',
-    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop&crop=center',
-    sku: 'DOG-FOOD-001',
-    price: 1200,
-    stock: 45,
-    category: 'Food',
-    petType: 'Dog',
-    status: 'active',
-    tags: ['premium', 'nutrition', 'adult']
-  },
-  {
-    id: '2',
-    name: 'Cat Scratching Post',
-    description: 'Durable scratching post for cats',
-    image: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=100&h=100&fit=crop&crop=center',
-    sku: 'CAT-TOY-001',
-    price: 800,
-    stock: 12,
-    category: 'Toys',
-    petType: 'Cat',
-    status: 'active',
-    tags: ['scratching', 'durable', 'indoor']
-  },
-  {
-    id: '3',
-    name: 'Aquarium Set',
-    description: 'Complete aquarium setup for fish',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=100&h=100&fit=crop&crop=center',
-    sku: 'FISH-TANK-001',
-    price: 2500,
-    stock: 3,
-    category: 'Accessories',
-    petType: 'Fish',
-    status: 'active',
-    tags: ['aquarium', 'complete', 'fish']
-  },
-  {
-    id: '4',
-    name: 'Dog Leash',
-    description: 'Strong and comfortable dog leash',
-    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop&crop=center',
-    sku: 'DOG-LEASH-001',
-    price: 300,
-    stock: 8,
-    category: 'Accessories',
-    petType: 'Dog',
-    status: 'active',
-    tags: ['leash', 'strong', 'comfortable']
-  },
-  {
-    id: '5',
-    name: 'Cat Health Supplements',
-    description: 'Essential vitamins for cat health',
-    image: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=100&h=100&fit=crop&crop=center',
-    sku: 'CAT-HEALTH-001',
-    price: 600,
-    stock: 25,
-    category: 'Health',
-    petType: 'Cat',
-    status: 'active',
-    tags: ['health', 'vitamins', 'supplements']
-  },
-  {
-    id: '6',
-    name: 'Bird Cage',
-    description: 'Spacious cage for small birds',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=100&h=100&fit=crop&crop=center',
-    sku: 'BIRD-CAGE-001',
-    price: 1500,
-    stock: 7,
-    category: 'Accessories',
-    petType: 'Bird',
-    status: 'active',
-    tags: ['cage', 'spacious', 'birds']
-  },
-  {
-    id: '7',
-    name: 'Bird Seed Mix',
-    description: 'Premium seed mix for all types of birds',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=100&h=100&fit=crop&crop=center',
-    sku: 'BIRD-FOOD-001',
-    price: 450,
-    stock: 20,
-    category: 'Food',
-    petType: 'Bird',
-    status: 'active',
-    tags: ['seeds', 'premium', 'nutrition']
-  },
-  {
-    id: '8',
-    name: 'Bird Perch Set',
-    description: 'Natural wood perches for bird cages',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=100&h=100&fit=crop&crop=center',
-    sku: 'BIRD-PERCH-001',
-    price: 200,
-    stock: 15,
-    category: 'Accessories',
-    petType: 'Bird',
-    status: 'active',
-    tags: ['perch', 'wood', 'natural']
-  }
-])
-
-const customers = ref<Customer[]>([
-  {
-    id: '1',
-    userId: 'CUST001',
-    name: 'Rajesh Kumar',
-    email: 'rajesh.kumar@email.com',
-    dateJoined: '2023-01-15',
-    location: 'Mumbai',
-    totalSpends: 25000,
-    totalOrders: 12,
-    status: 'active'
-  },
-  {
-    id: '2',
-    userId: 'CUST002',
-    name: 'Priya Sharma',
-    email: 'priya.sharma@email.com',
-    dateJoined: '2023-02-20',
-    location: 'Delhi',
-    totalSpends: 18000,
-    totalOrders: 8,
-    status: 'active'
-  },
-  {
-    id: '3',
-    userId: 'CUST003',
-    name: 'Amit Patel',
-    email: 'amit.patel@email.com',
-    dateJoined: '2023-03-10',
-    location: 'Bangalore',
-    totalSpends: 32000,
-    totalOrders: 15,
-    status: 'blocked'
-  },
-  {
-    id: '4',
-    userId: 'CUST004',
-    name: 'Sneha Reddy',
-    email: 'sneha.reddy@email.com',
-    dateJoined: '2023-01-05',
-    location: 'Chennai',
-    totalSpends: 12000,
-    totalOrders: 6,
-    status: 'blocked'
-  },
-  {
-    id: '5',
-    userId: 'CUST005',
-    name: 'Vikram Singh',
-    email: 'vikram.singh@email.com',
-    dateJoined: '2023-04-12',
-    location: 'Kolkata',
-    totalSpends: 45000,
-    totalOrders: 20,
-    status: 'active'
-  }
-])
-
-const orders = ref<Order[]>([
-  {
-    id: '1234',
-    date: '2025-09-15',
-    customer: 'John Doe',
-    total: 2500,
-    status: 'processing'
-  },
-  {
-    id: '1235',
-    date: '2025-09-14',
-    customer: 'Jane Smith',
-    total: 1800,
-    status: 'shipped'
-  },
-  {
-    id: '1236',
-    date: '2025-09-13',
-    customer: 'Mike Johnson',
-    total: 3200,
-    status: 'completed'
-  },
-  {
-    id: '1237',
-    date: '2025-09-12',
-    customer: 'Sarah Wilson',
-    total: 1500,
-    status: 'cancelled'
-  },
-  {
-    id: '1238',
-    date: '2025-09-11',
-    customer: 'David Brown',
-    total: 2800,
-    status: 'processing'
-  }
-])
+const api = useApi()
+const products = ref<Product[]>([])
+const customers = ref<Customer[]>([])
+const orders = ref<Order[]>([])
+const faqs = ref<{ id: string; question: string; answer: string; category: string }[]>([])
 
 // Search results
 const productResults = ref<Product[]>([])
@@ -562,7 +365,7 @@ const totalResults = computed(() => {
 })
 
 // Methods
-const performSearch = () => {
+const performSearch = async () => {
   if (!searchQuery.value.trim()) {
     hasSearched.value = false
     productResults.value = []
@@ -613,6 +416,11 @@ const performSearch = () => {
 
   // Update URL
   updateURL()
+
+  // Log search
+  try {
+    await api.post(`/search/log`, { query_text: searchQuery.value, filters: JSON.stringify({ entity: selectedEntity.value }), results_count: totalResults.value, source: 'admin' })
+  } catch (e) { /* noop */ }
 }
 
 const updateURL = () => {
@@ -773,8 +581,22 @@ onMounted(() => {
   if (route.query.entity) {
     selectedEntity.value = route.query.entity as string
   }
-  if (searchQuery.value) {
-    performSearch()
-  }
+  ;(async () => {
+    try {
+      const [prod, users, ords, fqs] = await Promise.all([
+        api.get<any[]>(`/products`),
+        api.get<any[]>(`/users`),
+        api.get<any[]>(`/orders`),
+        api.get<any[]>(`/faqs`),
+      ])
+      products.value = prod.map(p => ({ id: String(p.product_id), name: p.name, description: p.description || '', image: p.main_image_url || '', sku: p.sku, price: p.price, stock: p.stock, category: p.category_name || '', petType: p.pet_type || '', status: p.status || 'active', tags: (p.tags ? String(p.tags).split(',').map((t: string) => t.trim()).filter(Boolean) : []) }))
+      customers.value = users.map(u => ({ id: String(u.user_id), userId: u.customer_code || String(u.user_id), name: u.full_name, email: u.email, dateJoined: u.date_joined, location: `${u.city || ''}${u.state ? ', ' + u.state : ''}`.trim(), totalSpends: 0, totalOrders: 0, status: u.is_active ? 'active' : 'blocked' }))
+      orders.value = ords.map(o => ({ id: String(o.order_id), date: o.order_date ? new Date(o.order_date).toISOString().slice(0,10) : '', customer: String(o.user_id), total: o.total_price, status: o.order_status || 'processing' }))
+      faqs.value = fqs.map(f => ({ id: String(f.faq_id), question: f.question, answer: f.answer, category: f.category }))
+    } catch (e) { /* noop */ }
+    if (searchQuery.value) {
+      performSearch()
+    }
+  })()
 })
 </script>

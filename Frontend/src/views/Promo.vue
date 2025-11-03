@@ -7,6 +7,9 @@
 
       <main class="w-full py-8 px-4 sm:px-6 lg:px-8">
         <div class="space-y-8 max-w-6xl ml-4">
+          <div v-if="errorMsg" class="mb-4 rounded-lg border border-red-300 bg-red-50 text-red-700 px-3 py-2 text-sm">
+            {{ errorMsg }}
+          </div>
           <div class="mb-8 flex justify-between items-center">
             <div>
               <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Promo Codes</h1>
@@ -232,10 +235,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Navbar from '@/components/Navbar.vue'
 import AddPromo from '@/views/AddPromo.vue'
+import { useApi } from '@/composables/useApi'
 
 interface Promo {
   id: string
@@ -259,57 +263,9 @@ const promoToDelete = ref<Promo | null>(null)
 
 const types = ref(['Percentage', 'Fixed', 'Free Shipping', 'Buy One Get One'])
 
-// Sample promo data
-const promos = ref<Promo[]>([
-  {
-    id: '1',
-    code: 'SAVE10',
-    description: 'Get 10% off on all products',
-    discount: 10,
-    type: 'Percentage',
-    status: 'active'
-  },
-  {
-    id: '2',
-    code: 'FLAT200',
-    description: 'Flat ₹200 off on orders above ₹1000',
-    discount: 200,
-    type: 'Fixed',
-    status: 'active'
-  },
-  {
-    id: '3',
-    code: 'FREESHIP',
-    description: 'Free shipping on all orders this week',
-    discount: 0,
-    type: 'Free Shipping',
-    status: 'inactive'
-  },
-  {
-    id: '4',
-    code: 'BOGOFUN',
-    description: 'Buy one get one free on selected pet toys',
-    discount: 0,
-    type: 'Buy One Get One',
-    status: 'active'
-  },
-  {
-    id: '5',
-    code: 'SAVE50',
-    description: '50% off clearance sale items',
-    discount: 50,
-    type: 'Percentage',
-    status: 'expired'
-  },
-  {
-    id: '6',
-    code: 'FLAT500',
-    description: '₹500 off for first-time customers',
-    discount: 500,
-    type: 'Fixed',
-    status: 'inactive'
-  }
-])
+const promos = ref<Promo[]>([])
+const api = useApi()
+const errorMsg = ref('')
 
 // Methods
 const getStatusClass = (status: string) => {
@@ -365,38 +321,62 @@ const closeDeleteModal = () => {
   promoToDelete.value = null
 }
 
-const confirmDelete = () => {
+const confirmDelete = async () => {
   if (promoToDelete.value) {
-    const index = promos.value.findIndex(promo => promo.id === promoToDelete.value!.id)
-    if (index !== -1) {
-      promos.value.splice(index, 1)
-    }
+    try { errorMsg.value = ''; await api.del(`/promos/${promoToDelete.value.id}`) } catch (e: any) { errorMsg.value = e?.message || 'Failed to delete promo' }
+    promos.value = promos.value.filter(p => p.id !== promoToDelete.value!.id)
   }
   closeDeleteModal()
 }
 
-const savePromo = () => {
+const savePromo = async () => {
   if (editingPromo.value) {
-    const index = promos.value.findIndex(promo => promo.id === editingPromo.value!.id)
-    if (index !== -1) {
-      promos.value[index] = { ...editingPromo.value }
+    const body: any = {
+      code: editingPromo.value.code,
+      name: editingPromo.value.code,
+      description: editingPromo.value.description,
+      discount_type: editingPromo.value.type === 'Percentage' ? 'percentage' : 'fixed',
+      discount_value: editingPromo.value.discount || 0,
+      valid_from: new Date().toISOString(),
+      valid_until: new Date(Date.now() + 7*24*3600*1000).toISOString(),
+      active: editingPromo.value.status === 'active'
     }
+    try { errorMsg.value = ''; await api.put(`/promos/${editingPromo.value.id}`, body) } catch (e: any) { errorMsg.value = e?.message || 'Failed to update promo' }
   }
   closeEditModal()
 }
 
 type NewPromo = Omit<Promo, 'id'>
 
-const handlePromoSaved = (newPromo: NewPromo) => {
-  const promoToAdd: Promo = {
-    id: `promo-${Date.now()}`,
+const handlePromoSaved = async (newPromo: NewPromo) => {
+  const body: any = {
     code: newPromo.code,
+    name: newPromo.code,
     description: newPromo.description,
-    discount: newPromo.discount,
-    type: newPromo.type,
-    status: newPromo.status
+    discount_type: newPromo.type === 'Percentage' ? 'percentage' : 'fixed',
+    discount_value: newPromo.discount || 0,
+    valid_from: new Date().toISOString(),
+    valid_until: new Date(Date.now() + 7*24*3600*1000).toISOString(),
+    active: newPromo.status === 'active'
   }
-  promos.value.unshift(promoToAdd)
+  try { errorMsg.value = ''; await api.post(`/promos`, body) } catch (e: any) { errorMsg.value = e?.message || 'Failed to create promo' }
   showAddPromoPage.value = false
+  await fetchPromos()
 }
+
+async function fetchPromos() {
+  try {
+    const data = await api.get<any[]>(`/promos`)
+    promos.value = data.map(p => ({
+      id: String(p.promo_id),
+      code: p.code,
+      description: p.description || '',
+      discount: p.discount_value,
+      type: p.discount_type === 'percentage' ? 'Percentage' : 'Fixed',
+      status: p.active ? 'active' : 'inactive'
+    }))
+  } catch (e) { /* noop */ }
+}
+
+onMounted(fetchPromos)
 </script>

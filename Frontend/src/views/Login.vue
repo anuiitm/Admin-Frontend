@@ -75,14 +75,22 @@ const remember = ref(true)
 const loading = ref(false)
 
 async function onSubmit() {
-	loading.value = true
-	// Simulate auth and persist token
-	setTimeout(() => {
-		localStorage.setItem('auth_token', 'demo-token')
-		if (remember.value) localStorage.setItem('remember_me', '1')
-		loading.value = false
-		router.push({ name: 'dashboard' })
-	}, 800)
+    if (loading.value) return
+    loading.value = true
+    const ADMIN_EMAIL = 'admin@pettry.com'
+    const ADMIN_PASSWORD = 'Admin@123'
+
+    const isValid = email.value.trim().toLowerCase() === ADMIN_EMAIL && password.value === ADMIN_PASSWORD
+    if (!isValid) {
+        loading.value = false
+        alert('Invalid credentials')
+        return
+    }
+
+    localStorage.setItem('auth_token', 'admin-static-token')
+    if (remember.value) localStorage.setItem('remember_me', '1')
+    loading.value = false
+    router.push({ name: 'dashboard' })
 }
 </script>
 

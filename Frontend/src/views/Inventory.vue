@@ -177,8 +177,13 @@
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   <tr v-for="product in filteredProducts" :key="product.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <img :src="product.image" :alt="product.name" class="h-12 w-12 rounded-lg object-cover" />
-                    </td>
+                  <img v-if="product.image" :src="getImageUrl(product.image)" :alt="product.name" class="h-12 w-12 rounded-lg object-cover" />
+                  <div v-else class="h-12 w-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                    <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                  </div>
+                </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="text-sm font-medium text-gray-900 dark:text-white">{{ product.name }}</div>
                       <div class="text-sm text-gray-500 dark:text-gray-400">{{ product.description }}</div>
@@ -335,9 +340,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Navbar from '@/components/Navbar.vue'
+import { useApi } from '@/composables/useApi'
+
+const isLoading = ref(false)
 
 interface Product {
   id: string
@@ -365,84 +373,11 @@ const selectedStockStatus = ref('')
 const stockUpdates = ref<Record<string, number>>({})
 
 // Filter options
-const categories = ref(['Food', 'Toys', 'Accessories', 'Health', 'Grooming', 'Beds'])
-const petTypes = ref(['Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Hamster'])
+const categories = ref<string[]>([])
+const petTypes = ref<string[]>([])
 
-// Sample products data (same as Products page)
-const products = ref<Product[]>([
-  {
-    id: '1',
-    name: 'Premium Dog Food',
-    description: 'High-quality nutrition for adult dogs',
-    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop&crop=center',
-    sku: 'DOG-FOOD-001',
-    price: 1200,
-    stock: 45,
-    category: 'Food',
-    petType: 'Dog',
-    status: 'active'
-  },
-  {
-    id: '2',
-    name: 'Cat Scratching Post',
-    description: 'Durable scratching post for cats',
-    image: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=100&h=100&fit=crop&crop=center',
-    sku: 'CAT-TOY-001',
-    price: 800,
-    stock: 12,
-    category: 'Toys',
-    petType: 'Cat',
-    status: 'active'
-  },
-  {
-    id: '3',
-    name: 'Aquarium Set',
-    description: 'Complete aquarium setup for fish',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=100&h=100&fit=crop&crop=center',
-    sku: 'FISH-TANK-001',
-    price: 2500,
-    stock: 3,
-    category: 'Accessories',
-    petType: 'Fish',
-    status: 'active'
-  },
-  {
-    id: '4',
-    name: 'Bird Cage',
-    description: 'Spacious cage for small birds',
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=100&h=100&fit=crop&crop=center',
-    sku: 'BIRD-CAGE-001',
-    price: 1500,
-    stock: 0,
-    category: 'Accessories',
-    petType: 'Bird',
-    status: 'inactive'
-  },
-  {
-    id: '5',
-    name: 'Dog Leash',
-    description: 'Strong and comfortable dog leash',
-    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=100&h=100&fit=crop&crop=center',
-    sku: 'DOG-LEASH-001',
-    price: 300,
-    stock: 8,
-    category: 'Accessories',
-    petType: 'Dog',
-    status: 'active'
-  },
-  {
-    id: '6',
-    name: 'Cat Health Supplements',
-    description: 'Essential vitamins for cat health',
-    image: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=100&h=100&fit=crop&crop=center',
-    sku: 'CAT-HEALTH-001',
-    price: 600,
-    stock: 25,
-    category: 'Health',
-    petType: 'Cat',
-    status: 'active'
-  }
-])
+const products = ref<Product[]>([])
+const api = useApi()
 
 // Computed properties
 const totalInventoryValue = computed(() => {
@@ -494,6 +429,12 @@ const filteredProducts = computed(() => {
 })
 
 // Methods
+const getImageUrl = (imageUrl: string) => {
+  if (!imageUrl) return '';
+  if (imageUrl.startsWith('http')) return imageUrl;
+  return `http://localhost:5001${imageUrl}`;
+}
+
 const getStockClass = (stock: number) => {
   if (stock === 0) return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
   if (stock <= 10) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
@@ -520,19 +461,19 @@ const clearFilters = () => {
 }
 
 const updateStock = (product: Product) => {
-  stockUpdates.value[product.id] = product.stock
+  stockUpdates.value[String(product.product_id)] = product.stock
   showUpdateModal.value = true
 }
 
 const incrementStock = (productId: string) => {
-  if (!stockUpdates.value[productId]) {
+  if (!stockUpdates.value[productId] && stockUpdates.value[productId] !== 0) {
     stockUpdates.value[productId] = 0
   }
   stockUpdates.value[productId]++
 }
 
 const decrementStock = (productId: string) => {
-  if (!stockUpdates.value[productId]) {
+  if (!stockUpdates.value[productId] && stockUpdates.value[productId] !== 0) {
     stockUpdates.value[productId] = 0
   }
   if (stockUpdates.value[productId] > 0) {
@@ -540,30 +481,82 @@ const decrementStock = (productId: string) => {
   }
 }
 
-const notifyUsers = () => {
-  // In a real app, this would send notifications to users
-  alert('Users have been notified about stock updates!')
-}
+const notifyUsers = () => {}
 
-const updateInventory = () => {
-  // Update stock for all products
-  Object.keys(stockUpdates.value).forEach(productId => {
-    const product = products.value.find(p => p.id === productId)
-    if (product) {
-      product.stock = stockUpdates.value[productId]
+const updateInventory = async () => {
+  const entries = Object.entries(stockUpdates.value)
+  for (const [pid, newStock] of entries) {
+    try {
+      const item = products.value.find(p => String(p.product_id) === String(pid))
+      if (item) {
+        const delta = Number(newStock) - Number(item.stock)
+        // Update inventory by delta
+        await api.post(`/inventory/adjust`, { inventory_id: Number(item.inventory_id), quantity_change: delta })
+        // Update product absolute stock
+        await api.put(`/products/${item.product_id}`, { stock: Number(newStock) })
+      }
+    } catch (e) {
+      console.error("Error updating inventory:", e)
     }
-  })
-  
-  // Clear updates and close modal
+  }
   stockUpdates.value = {}
   showUpdateModal.value = false
-  
-  // Show success message
-  alert('Inventory updated successfully!')
+  await fetchInventory()
 }
 
 const closeUpdateModal = () => {
   showUpdateModal.value = false
   stockUpdates.value = {}
 }
+
+const fetchInventory = async () => {
+  try {
+    isLoading.value = true
+    // First get inventory data
+    const inventoryData: any[] = await api.get('/inventory')
+
+    // Then get product data
+    const productsData: any[] = await api.get('/products')
+
+    // Create a map of products by ID for quick lookup
+    const productsMap: Record<number, any> = {}
+    if (productsData && Array.isArray(productsData)) {
+      productsData.forEach(product => {
+        productsMap[product.product_id] = product
+      })
+    }
+
+    // Combine inventory with product data
+    products.value = Array.isArray(inventoryData) ? inventoryData.map(item => {
+      const product = productsMap[item.product_id] || {}
+      let imageUrl = product.main_image_url || ''
+
+      // Format image URL if needed
+      if (imageUrl && !imageUrl.startsWith('http')) {
+        imageUrl = `http://localhost:5001${imageUrl}`
+      }
+
+      return {
+        id: String(item.inventory_id),
+        inventory_id: item.inventory_id,
+        product_id: item.product_id,
+        name: product.name || `Product #${item.product_id}`,
+        description: product.description || '',
+        image: imageUrl,
+        sku: product.sku || String(item.product_id),
+        price: product.price || 0,
+        stock: item.current_stock,
+        category: product.category_name || '',
+        petType: product.pet_type || '',
+        status: item.stock_status
+      }
+    }) : []
+  } catch (error) {
+    console.error('Error fetching inventory:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => { fetchInventory() })
 </script>

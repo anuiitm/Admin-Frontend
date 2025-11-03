@@ -8,6 +8,9 @@
     </div>
     
     <div class="px-6 py-4">
+      <div v-if="errorMsg" class="mb-4 rounded-lg border border-red-300 bg-red-50 text-red-700 px-3 py-2 text-sm">
+        {{ errorMsg }}
+      </div>
       <div class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -85,7 +88,8 @@
 </template>
   
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
 
 // Define Props
 const props = defineProps<{
@@ -104,9 +108,11 @@ const petTypes = ref(['Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Hamster'])
 // Image upload
 const imageFile = ref<File | null>(null)
 const imagePreview = ref<string | null>(null)
+const errorMsg = ref('')
 
 // Form state
 const tagsInput = ref('')
+const api = useApi()
 const newProduct = ref({
   name: '',
   description: '',
@@ -137,17 +143,62 @@ const handleImageUpload = (event: Event) => {
   }
 }
 
-const saveNewProduct = () => {
+const saveNewProduct = async () => {
   // Process tags
   newProduct.value.tags = tagsInput.value
     .split(',')
     .map(tag => tag.trim())
     .filter(tag => tag) // Remove any empty strings
 
-  const productData = {
-    ...newProduct.value,
-    image: imageFile.value || null
+  errorMsg.value = ''
+  try {
+    // Ensure defaults
+    if (!newProduct.value.category && props.categories && props.categories.length > 0) {
+      newProduct.value.category = props.categories[0]
+    }
+    if (!newProduct.value.petType) {
+      newProduct.value.petType = 'general'
+    }
+
+    // Upload image first if available
+    let imageUrl = '/paws.png';
+    if (imageFile.value) {
+      const formData = new FormData();
+      formData.append('file', imageFile.value);
+      const response = await fetch('http://localhost:5001/api/admin/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+      if (result.url) {
+        imageUrl = result.url;
+      }
+    }
+
+    const payload: any = {
+      name: newProduct.value.name,
+      sku: newProduct.value.sku,
+      description: newProduct.value.description,
+      price: newProduct.value.price,
+      stock: newProduct.value.stock,
+      main_image_url: imageUrl,
+      tags: newProduct.value.tags.join(','),
+      category_name: newProduct.value.category,
+      pet_type: newProduct.value.petType,
+      is_active: newProduct.value.status === 'active'
+    }
+    if (!payload.name || !payload.sku || !payload.price || !payload.category_name || !payload.pet_type) {
+      alert('Please fill name, SKU, price, category and pet type.')
+      return
+    }
+    await api.post(`/products`, payload)
+    emit('product-saved', newProduct.value)
+  } catch (e: any) {
+    errorMsg.value = e?.message || 'Failed to create product'
   }
-  emit('product-saved', productData)
 }
+
+onMounted(async () => {
+  // If categories not passed, could fetch here via /categories
+})
 </script>

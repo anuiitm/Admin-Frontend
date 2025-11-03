@@ -77,9 +77,6 @@ const cancel = () => {
 }
 
 const saveNewPromo = () => {
-  const promoData = {
-    ...newPromo.value
-  }
-  emit('promo-saved', promoData)
+  emit('promo-saved', { ...newPromo.value })
 }
 </script>
