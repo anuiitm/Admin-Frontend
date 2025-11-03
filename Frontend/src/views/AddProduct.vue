@@ -160,13 +160,28 @@ const saveNewProduct = async () => {
       newProduct.value.petType = 'general'
     }
 
+    // Upload image first if available
+    let imageUrl = '/paws.png';
+    if (imageFile.value) {
+      const formData = new FormData();
+      formData.append('file', imageFile.value);
+      const response = await fetch('http://localhost:5001/api/admin/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+      if (result.url) {
+        imageUrl = result.url;
+      }
+    }
+
     const payload: any = {
       name: newProduct.value.name,
       sku: newProduct.value.sku,
       description: newProduct.value.description,
       price: newProduct.value.price,
       stock: newProduct.value.stock,
-      main_image_url: imagePreview.value || '/paws.png',
+      main_image_url: imageUrl,
       tags: newProduct.value.tags.join(','),
       category_name: newProduct.value.category,
       pet_type: newProduct.value.petType,

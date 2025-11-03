@@ -601,4 +601,30 @@ def mark_notification_read(notification_id):
     db.session.commit()
     return ok({"notification_id": n.notification_id, "is_read": n.is_read})
 
+# -------- File Upload --------
+@api_bp.post("/upload")
+def upload_file():
+    if 'file' not in request.files:
+        return ({"error": "No file part"}, 400)
+    
+    file = request.files['file']
+    if file.filename == '':
+        return ({"error": "No selected file"}, 400)
+    
+    # Create uploads directory if it doesn't exist
+    import os
+    upload_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+    
+    # Save file with secure filename
+    from werkzeug.utils import secure_filename
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(upload_folder, filename)
+    file.save(file_path)
+    
+    # Return the URL path to access the file
+    file_url = f"/uploads/{filename}"
+    return ok({"url": file_url})
+
 

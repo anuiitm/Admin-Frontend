@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 import os
 
@@ -29,6 +29,12 @@ def create_app():
     @app.route("/health")
     def health():
         return {"status": "ok"}
+        
+    # Serve uploaded files
+    @app.route('/uploads/<path:filename>')
+    def uploaded_file(filename):
+        upload_folder = os.path.join(os.path.dirname(__file__), 'uploads')
+        return send_from_directory(upload_folder, filename)
 
     return app
 

@@ -132,11 +132,11 @@
                   <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     <tr v-for="product in filteredProducts" :key="product.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td class="px-6 py-4 whitespace-nowrap">
-                        <img v-if="product.image" :src="product.image.startsWith('http') ? product.image : `http://localhost:5001${product.image}`" :alt="product.name" class="h-12 w-12 rounded-lg object-cover" />
-                        <div v-else class="h-12 w-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                          <span class="text-xs text-gray-500 dark:text-gray-400">No image</span>
-                        </div>
-                      </td>
+        <img v-if="product.image" :src="getImageUrl(product.image)" :alt="product.name" class="h-12 w-12 rounded-lg object-cover" />
+        <div v-else class="h-12 w-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+          <span class="text-xs text-gray-500 dark:text-gray-400">No image</span>
+        </div>
+      </td>
                       <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900 dark:text-white">{{ product.name }}</div>
                         <div class="text-sm text-gray-500 dark:text-gray-400">{{ product.description }}</div>
@@ -507,6 +507,12 @@ const getStatusClass = (status: string) => {
   return classes[status as keyof typeof classes] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/40 dark:text-gray-300'
 }
 
+const getImageUrl = (imageUrl: string) => {
+  if (!imageUrl) return '';
+  if (imageUrl.startsWith('http')) return imageUrl;
+  return `http://localhost:5001${imageUrl}`;
+}
+
 const clearFilters = () => {
   searchQuery.value = ''
   selectedCategory.value = ''
@@ -575,24 +581,68 @@ const closeDeleteModal = () => {
   productToDelete.value = null
 }
 
-const confirmDelete = () => {
+const confirmDelete = async () => {
   if (productToDelete.value) {
-    const index = products.value.findIndex(product => product.id === productToDelete.value!.id)
-    if (index !== -1) {
-      products.value.splice(index, 1)
+    try {
+      await api.del(`/products/${productToDelete.value.id}`)
+      const index = products.value.findIndex(product => product.id === productToDelete.value!.id)
+      if (index !== -1) {
+        products.value.splice(index, 1)
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error)
     }
   }
   closeDeleteModal()
 }
 
-const saveProduct = () => {
+const saveProduct = async () => {
   if (editingProduct.value) {
-    const index = products.value.findIndex(product => product.id === editingProduct.value!.id)
-    if (index !== -1) {
-      // Update tags from input
-      editingProduct.value.tags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag)
-      editingProduct.value.image = imageFile.value ? URL.createObjectURL(imageFile.value) : editingProduct.value.image
-      products.value[index] = { ...editingProduct.value }
+    try {
+      // Prepare the product data for the API
+      const productData = {
+        name: editingProduct.value.name,
+        description: editingProduct.value.description,
+        tags: tagsInput.value,
+        sku: editingProduct.value.sku,
+        price: editingProduct.value.price,
+        stock: editingProduct.value.stock,
+        category_name: editingProduct.value.category,
+        pet_type: editingProduct.value.petType,
+        status: editingProduct.value.status
+      }
+      
+      // Send the update to the API
+      await api.put(`/products/${editingProduct.value.id}`, productData)
+      
+      // Update the local state
+      const index = products.value.findIndex(product => product.id === editingProduct.value!.id)
+      if (index !== -1) {
+        // Update tags from input
+        editingProduct.value.tags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag)
+        editingProduct.value.image = imageFile.value ? URL.createObjectURL(imageFile.value) : editingProduct.value.image
+        products.value[index] = { ...editingProduct.value }
+      }
+      
+      // Refresh the product list to ensure we have the latest data
+      try {
+        const data = await api.get<any[]>(`/products`)
+        products.value = data.map(p => ({
+          id: String(p.product_id),
+          name: p.name,
+          description: p.description || '',
+          image: p.main_image_url ? (p.main_image_url.startsWith('http') ? p.main_image_url : `http://localhost:5001${p.main_image_url}`) : '',
+          tags: (p.tags ? String(p.tags).split(',').map((t: string) => t.trim()).filter(Boolean) : []),
+          sku: p.sku,
+          price: p.price,
+          stock: p.stock,
+          category: p.category_name || '',
+          petType: p.pet_type || '',
+          status: p.status || 'active',
+        }))
+      } catch (e) { console.error('Error refreshing products:', e) }
+    } catch (error) {
+      console.error('Error updating product:', error)
     }
   }
   closeEditModal()
