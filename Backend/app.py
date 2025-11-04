@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, current_app
 from flask_cors import CORS
 import os
 
@@ -15,6 +15,10 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["JSON_SORT_KEYS"] = False
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret")
+    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+
+    # Ensure the folder actually exists
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     # CORS for local dev frontend (Vite default port)
     CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173"]}})
@@ -29,12 +33,6 @@ def create_app():
     @app.route("/health")
     def health():
         return {"status": "ok"}
-        
-    # Serve uploaded files
-    @app.route('/uploads/<path:filename>')
-    def uploaded_file(filename):
-        upload_folder = os.path.join(os.path.dirname(__file__), 'uploads')
-        return send_from_directory(upload_folder, filename)
 
     return app
 

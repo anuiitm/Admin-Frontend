@@ -549,7 +549,7 @@ const handleImageUpload = (event: Event) => {
     reader.onload = (e) => {
       imagePreview.value = e.target?.result as string
     }
-    reader.readAsDataURL(imageFile.value)
+    reader.readAsDataURL(target.files[0])
   }
 }
 
@@ -599,6 +599,26 @@ const confirmDelete = async () => {
 const saveProduct = async () => {
   if (editingProduct.value) {
     try {
+      // image upload if new one selected
+      let imageUrl = editingProduct.value.image
+      if (imageFile.value) {
+        const formData = new FormData()
+        formData.append('image', imageFile.value)
+        try {
+          const res = await fetch('http://localhost:5001/api/admin/upload-product-image', {
+            method: 'POST',
+            body: formData
+          })
+          const data = await res.json()
+          if (res.ok && data.url) {
+            imageUrl = data.url
+          } else {
+            console.error('Image upload failed:', data.error);
+          }
+        } catch (err) {
+          console.error('Error uploading image:', err);
+        }
+      }
       // Prepare the product data for the API
       const productData = {
         name: editingProduct.value.name,
@@ -607,6 +627,7 @@ const saveProduct = async () => {
         sku: editingProduct.value.sku,
         price: editingProduct.value.price,
         stock: editingProduct.value.stock,
+        main_image_url: imageUrl,
         category_name: editingProduct.value.category,
         pet_type: editingProduct.value.petType,
         status: editingProduct.value.status
@@ -660,13 +681,13 @@ const handleProductSaved = async (_newProduct: NewProduct) => {
       name: p.name,
       description: p.description || '',
       image: p.main_image_url ? (p.main_image_url.startsWith('http') ? p.main_image_url : `http://localhost:5001${p.main_image_url}`) : '',
-      tags: (p.tags ? String(p.tags).split(',').map((t: string) => t.trim()).filter(Boolean) : []),
+      tags: p.tags ? String(p.tags).split(',').map((t: string) => t.trim()) : [],
       sku: p.sku,
       price: p.price,
       stock: p.stock,
       category: p.category_name || '',
       petType: p.pet_type || '',
-      status: p.status || 'active',
+      status: p.status || (p.is_active ? 'active' : 'inactive')
     }))
   } catch (e) { /* noop */ }
 }
@@ -679,7 +700,7 @@ onMounted(async () => {
       name: p.name,
       description: p.description || '',
       image: p.main_image_url ? (p.main_image_url.startsWith('http') ? p.main_image_url : `http://localhost:5001${p.main_image_url}`) : '',
-      tags: (p.tags ? String(p.tags).split(',').map((t: string) => t.trim()).filter(Boolean) : []),
+      tags: p.tags ? String(p.tags).split(',').map((t: string) => t.trim()) : [],
       sku: p.sku,
       price: p.price,
       stock: p.stock,

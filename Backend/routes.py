@@ -1,7 +1,9 @@
-from flask import Blueprint, request
+import os
+from flask import Blueprint, request, current_app
 from sqlalchemy import func
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
+from werkzeug.utils import secure_filename
 
 from models import db, User, Product, Category, Inventory, Order, OrderItem, OrderStatus, Shipment, PromoCode, FAQ, AppSetting, StockMovement, ProductAnalytic, DashboardReport, SearchQueryLog, ReturnRequest, Notification
 
@@ -119,13 +121,17 @@ def list_products():
         {
             "product_id": p.product_id,
             "name": p.name,
+            "description": p.description,
             "sku": p.sku,
             "price": p.price,
             "discount_price": p.discount_price,
-            "stock": p.stock,
+            "stock": p.stock,            
+            "main_image_url": p.main_image_url,
+            "tags": p.tags.split(",") if p.tags else [],
             "category_name": p.category_name,
             "category_id": p.category_id,
-            "pet_type": p.pet_type,
+            "pet_type": p.pet_type,            
+            "status": p.status,
             "is_active": p.is_active,
             "is_featured": p.is_featured,
             "created_at": p.created_at.isoformat(),
@@ -133,6 +139,32 @@ def list_products():
         for p in products
     ])
 
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@api_bp.post("/upload-product-image")
+def upload_image():
+    if 'image' not in request.files:
+        return {"error": "No file found"}, 400
+
+    file = request.files['image']
+
+    if file.filename == '':
+        return {"error": "File name missing"}, 400
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        upload_folder = current_app.config['UPLOAD_FOLDER']
+        os.makedirs(upload_folder, exist_ok=True)
+        file_path = os.path.join(upload_folder, filename)
+        file.save(file_path)
+
+        file_url = f"/static/uploads/{filename}"
+        return {"message": "Uploaded successfully", "url": file_url}, 201
+    return {"error": "Invalid file type"}, 400
 
 @api_bp.post("/products")
 def create_product():
@@ -157,7 +189,7 @@ def create_product():
             main_image_url=main_image_url,
             weight=body.get("weight"),
             dimensions=body.get("dimensions"),
-            tags=body.get("tags"),
+            tags=",".join(body.get("tags")) if isinstance(body.get("tags"), list) else body.get("tags"),
             category_name=body.get("category_name") or "",
             pet_type=body.get("pet_type") or "general",
             uploader_id=body.get("uploader_id"),
@@ -190,7 +222,11 @@ def update_product(product_id):
     ]
     for field in updatable:
         if field in body:
-            setattr(p, field, body[field])
+            if field == "tags" and isinstance(body[field], list):
+                # convert array → comma-separated string
+                setattr(p, field, ",".join(body[field]))
+            else:
+                setattr(p, field, body[field])
     db.session.commit()
     return ok({"product_id": p.product_id})
 
@@ -198,6 +234,8 @@ def update_product(product_id):
 @api_bp.delete("/products/<int:product_id>")
 def delete_product(product_id):
     p = Product.query.get_or_404(product_id)
+    for inv in p.inventory_items:
+        db.session.delete(inv)
     db.session.delete(p)
     db.session.commit()
     return ok()
@@ -601,30 +639,5 @@ def mark_notification_read(notification_id):
     db.session.commit()
     return ok({"notification_id": n.notification_id, "is_read": n.is_read})
 
-# -------- File Upload --------
-@api_bp.post("/upload")
-def upload_file():
-    if 'file' not in request.files:
-        return ({"error": "No file part"}, 400)
-    
-    file = request.files['file']
-    if file.filename == '':
-        return ({"error": "No selected file"}, 400)
-    
-    # Create uploads directory if it doesn't exist
-    import os
-    upload_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-    if not os.path.exists(upload_folder):
-        os.makedirs(upload_folder)
-    
-    # Save file with secure filename
-    from werkzeug.utils import secure_filename
-    filename = secure_filename(file.filename)
-    file_path = os.path.join(upload_folder, filename)
-    file.save(file_path)
-    
-    # Return the URL path to access the file
-    file_url = f"/uploads/{filename}"
-    return ok({"url": file_url})
 
 

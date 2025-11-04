@@ -116,9 +116,9 @@ const api = useApi()
 const newProduct = ref({
   name: '',
   description: '',
-  tags: [] as string[],
+  tags: ref<string[]>([]),
   sku: '',
-  price: 0,
+  price: 0.0,
   stock: 0,
   category: props.categories[0] || '', // Default to first category
   petType: '', // Will be set by user
@@ -164,8 +164,8 @@ const saveNewProduct = async () => {
     let imageUrl = '/paws.png';
     if (imageFile.value) {
       const formData = new FormData();
-      formData.append('file', imageFile.value);
-      const response = await fetch('http://localhost:5001/api/admin/upload', {
+      formData.append('image', imageFile.value);
+      const response = await fetch('http://localhost:5001/api/admin/upload-product-image', {
         method: 'POST',
         body: formData
       });
@@ -182,7 +182,7 @@ const saveNewProduct = async () => {
       price: newProduct.value.price,
       stock: newProduct.value.stock,
       main_image_url: imageUrl,
-      tags: newProduct.value.tags.join(','),
+      tags: newProduct.value.tags,
       category_name: newProduct.value.category,
       pet_type: newProduct.value.petType,
       is_active: newProduct.value.status === 'active'
